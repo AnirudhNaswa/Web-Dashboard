@@ -1,127 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Realtime Sensor Dashboard</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-  />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensor Dashboard</title>
   <style>
-    /* Your existing styles */
     body {
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
-      background: url('https://i.pinimg.com/originals/90/70/32/9070324cdfc07c68d60eed0c39e77573.gif') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
+      text-align: center;
+      background-color: #f9f9f9;
+      color: #333;
     }
     .header {
-      text-align: center;
-      font-size: 2.8rem;
-      font-weight: 700;
-      padding: 25px 10px;
-      background-color: rgba(20, 20, 20, 0.9);
-      box-shadow: 0 3px 15px rgba(0, 0, 0, 0.7);
-      user-select: none;
-      letter-spacing: 1.2px;
-      color: #a0c4ff;
-    }
-    .dashboard {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      font-size: 1.5rem;
+      font-weight: bold;
     }
     .card {
-      background: linear-gradient(
-        145deg,
-        rgba(47, 47, 47, 0.8),
-        rgba(30, 30, 30, 0.8)
-      );
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-      width: 300px;
-      padding: 20px;
-      text-align: center;
-      position: relative;
-      flex-shrink: 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px auto;
+      width: 90%;
+      max-width: 300px;
+      background-color: white;
     }
     .card h2 {
+      font-size: 1.2rem;
+      margin: 0 0 5px;
+    }
+    .value {
       font-size: 1.5rem;
-      margin-bottom: 10px;
-    }
-    .card .value {
-      font-size: 2.5rem;
       font-weight: bold;
-      color: #6eb7ff;
-      word-wrap: break-word;
-      white-space: normal;
     }
-    .card .status {
-      font-size: 1rem;
-      margin-top: 10px;
-      color: #00ff7f;
-    }
-    .card .icon {
-      font-size: 3rem;
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      color: #6eb7ff;
-      opacity: 0.8;
-    }
-    /* Make location card full width on second line and expand width with content */
-    .location-card {
-      width: auto;
-      min-width: 300px;
-      max-width: 90vw;
-      flex-basis: 100%;
-    }
-
-    @media (max-width: 768px) {
-      .dashboard {
-        flex-direction: column;
-        align-items: center;
-      }
-      .location-card {
-        flex-basis: auto;
-        width: 100%;
-        max-width: 100%;
-      }
+    .status {
+      font-size: 0.9rem;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <div class="header">Realtime Sensor Dashboard</div>
-  <div class="dashboard">
-    <div class="card">
-      <i class="fas fa-thermometer-half icon"></i>
-      <h2>Temperature</h2>
-      <div class="value" id="temperature">-- &#8451;</div>
-      <div class="status" id="temperature-status">Offline</div>
-    </div>
-    <div class="card">
-      <i class="fas fa-tint icon"></i>
-      <h2>Humidity</h2>
-      <div class="value" id="humidity">--%</div>
-      <div class="status" id="humidity-status">Offline</div>
-    </div>
-    <div class="card">
-      <i class="fas fa-flask icon"></i>
-      <h2>Ammonia</h2>
-      <div class="value" id="ammonia">-- ppm</div>
-      <div class="status" id="ammonia-status">Offline</div>
-    </div>
-    <div class="card location-card">
-      <i class="fas fa-map-marker-alt icon"></i>
-      <h2>Current Location</h2>
-      <div class="value" id="location">Detecting...</div>
-      <div class="status" id="location-status">-</div>
-    </div>
+  <div class="header">Sensor Dashboard</div>
+  <div class="card">
+    <h2>Temperature</h2>
+    <div class="value" id="temperature">-- &#8451;</div>
+    <div class="status" id="temperature-status">Offline</div>
+  </div>
+  <div class="card">
+    <h2>Humidity</h2>
+    <div class="value" id="humidity">--%</div>
+    <div class="status" id="humidity-status">Offline</div>
+  </div>
+  <div class="card">
+    <h2>Ammonia</h2>
+    <div class="value" id="ammonia">-- ppm</div>
+    <div class="status" id="ammonia-status">Offline</div>
   </div>
 
   <script type="module">
@@ -145,80 +82,22 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
+    const updateValue = (id, value, statusId) => {
+      document.getElementById(id).textContent = value;
+      document.getElementById(statusId).textContent = value ? "Online" : "Offline";
+    };
+
     onValue(ref(database, "temperature"), (snap) => {
-      const val = snap.val();
-      document.getElementById("temperature").textContent = val + " °C";
-      document.getElementById("temperature-status").textContent = val ? "Online" : "Offline";
+      updateValue("temperature", snap.val() + " °C", "temperature-status");
     });
 
     onValue(ref(database, "humidity"), (snap) => {
-      const val = snap.val();
-      document.getElementById("humidity").textContent = val + "%";
-      document.getElementById("humidity-status").textContent = val ? "Online" : "Offline";
+      updateValue("humidity", snap.val() + "%", "humidity-status");
     });
 
     onValue(ref(database, "ammonia"), (snap) => {
-      const val = snap.val();
-      document.getElementById("ammonia").textContent = val + " ppm";
-      document.getElementById("ammonia-status").textContent = val ? "Online" : "Offline";
+      updateValue("ammonia", snap.val() + " ppm", "ammonia-status");
     });
-
-    async function reverseGeocode(lat, lon) {
-      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
-      try {
-        const response = await fetch(url, {
-          headers: { "User-Agent": "RealtimeSensorDashboard/1.0 (your-email@example.com)" }
-        });
-        const data = await response.json();
-        if (data && data.display_name) {
-          document.getElementById("location").textContent = data.display_name;
-          document.getElementById("location-status").textContent = "Online";
-        } else {
-          document.getElementById("location").textContent = "Address not found";
-          document.getElementById("location-status").textContent = "Offline";
-        }
-      } catch (e) {
-        document.getElementById("location").textContent = "Error fetching address";
-        document.getElementById("location-status").textContent = "Offline";
-      }
-    }
-
-    async function getLocationByIP() {
-      try {
-        const ipRes = await fetch('https://ipapi.co/json/');
-        const ipData = await ipRes.json();
-        if (ipData.latitude && ipData.longitude) {
-          reverseGeocode(ipData.latitude, ipData.longitude);
-        } else {
-          document.getElementById("location").textContent = "IP location not available";
-          document.getElementById("location-status").textContent = "Offline";
-        }
-      } catch (e) {
-        document.getElementById("location").textContent = "Error getting IP location";
-        document.getElementById("location-status").textContent = "Offline";
-      }
-    }
-
-    function fetchLocation() {
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            reverseGeocode(pos.coords.latitude, pos.coords.longitude);
-          },
-          (error) => {
-            console.warn("Geolocation failed or denied, falling back to IP location.", error.message);
-            getLocationByIP();
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      } else {
-        document.getElementById("location").textContent = "Geolocation not supported";
-        document.getElementById("location-status").textContent = "Offline";
-        getLocationByIP();
-      }
-    }
-
-    fetchLocation();
   </script>
 </body>
 </html>
